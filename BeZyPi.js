@@ -2,34 +2,71 @@
     $("#LoadBetaSerie").click(LoadBetaSerie);
 });
 
-LoadBetaSerie = function() {
-
-    ShowLoading();
+var tokenBetaSerie = '';
+var apiKey = "7fb939f3363b";
     
-    var pwd = $.md5('developer');
-    var login = "Dev011";
-    var apiKey = "7fb939f3363b";
+var login = "haiecapique";
+var pwd = "d9fb8a057fb2af1c9c9557e49eee7dd4"; //$.md5('monPwd');
+var apiBetaSerie = 'https://api.betaseries.com/';
 
+HeaderApiBetaSerie = function(withToken) {
+    if(withToken)
+        return 'key=' + apiKey + '&v=2.4&token=' + tokenBetaSerie;
+    return 'key=' + apiKey + '&v=2.4';
+}
+
+LoadTokenBetaSerie = function(actionSuccess) {
     $.ajax({
-        url : 'https://api.betaseries.com/members/auth',
+        url : apiBetaSerie + 'members/auth',
         type : 'POST',
-        data : 'key=' + apiKey + '&v=2.4&login=' + login + '&password=' + pwd,
+        data : 'login=' + login + '&password=' + pwd + '&' + HeaderApiBetaSerie(false),
         dataType : 'json',
 
-        success : function(value, statut) {
-            $('#success').html(value.token);
+        success : function(resultat, statut) {          
+            tokenBetaSerie = resultat.token;
+            actionSuccess();
         },
         error : function(resultat, statut, erreur) {
-            alert(resultat.responseText);
+            alert(JSON.stringify(resultat, null, ' '));
         },
         complete : function(resultat, statut) {
-            HideLoading();
         }
     });
 }
 
+LoadBetaSerie = function() {
+    ShowLoading();
+
+    LoadTokenBetaSerie(function() {        
+        $.ajax({
+            url : apiBetaSerie + 'members/infos?only=shows&' + HeaderApiBetaSerie(true),
+            type : 'GET',
+            dataType : 'json',
+
+            success : function(resultat, statut) {                
+                var data = resultat.member.shows;                
+                $("#Series").empty();                
+                $.each(data, function(i, item) {
+                    $("#Series").append('<li>' + item.title + '</li>');
+                });
+                
+                HideLoading();
+            },
+            error : function(resultat, statut, erreur) {
+                alert(JSON.stringify(resultat, null, ' '));
+            },
+            complete : function(resultat, statut) {
+            }
+        });
+    });
+}
+
+String.prototype.nl2br = function() {
+    return this.replace(/\n/g, "<br />");
+}
+
 ShowLoading = function(opts) {
-    var options = {
+    var defaults  = {
         imgPath: 'loading.svg',
         imgStyle: {
             width: 'auto',
@@ -48,7 +85,7 @@ ShowLoading = function(opts) {
         }
     };
 
-    $.extend(options, opts);
+    var options = $.extend({}, defaults, opts);
 
     var img = $('<div><img src="' + options.imgPath + '"><div>' + options.text + '</div></div>');
     var block = $('<div id="loading_block"></div>');
