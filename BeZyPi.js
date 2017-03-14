@@ -59,7 +59,7 @@ function InterneLoadSeries(token) {
 function InterneShowSeries(series) {
     $("#Series").empty();
     $.each(series, function(i, item) {
-        $("#Series").append('<li>' + item.title + '<span class="badge">'+ item.seasons +'</span></li>');
+        $("#Series").append('<li><a class="list-group-item">' + item.title + '<span class="badge">'+ item.seasons +'</span></a></li>');
     });
 }
 
