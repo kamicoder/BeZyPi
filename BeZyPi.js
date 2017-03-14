@@ -1,5 +1,5 @@
 ﻿$(function() {
-    $("#LoadBetaSerie").click(LoadBetaSerie);
+    $("#LoadBetaSerie").click(LoadSeries);
 });
 
 var apiKey = "7fb939f3363b";
@@ -34,40 +34,32 @@ function GetAjaxSeriesBetaSeries(requestToken) {
     });
 }
 
-function LoadBetaSerie() {
-
+function LoadSeries() {
     ShowLoading();
-
     var requestToken = GetAjaxTokenBetaSeries();
+    requestToken.then(value => InterneLoadSeries(value.token), value => Errors(value, true));
+}
 
-    requestToken.done(function(value) {
-        var token = value.token;
-        
-        var requestSeries = GetAjaxSeriesBetaSeries(token);
+function InterneLoadSeries(token) {
+    var requestSeries = GetAjaxSeriesBetaSeries(token);
+    requestSeries.then(value => InterneShowSeries(value.member.shows), value => Errors(value, false));
+    requestSeries.always(HideLoading);
+}
 
-        requestSeries.done(function(value) {
-            series = value.member.shows;
-
-            $("#Series").empty();
-
-            $.each(series, function(i, item) {
-                $("#Series").append('<li>' + item.title + '</li>');
-            });
-                HideLoading();
-        });
-
-        requestSeries.fail(function(value) {
-            alert(JSON.stringify(value, null, ' '));
-            HideLoading();
-        });
-    });
-
-    requestToken.fail(function(value) {
-        alert(JSON.stringify(value, null, ' '));
-        HideLoading();
+function InterneShowSeries(series) {
+    $("#Series").empty();
+    $.each(series, function(i, item) {
+        $("#Series").append('<li>' + item.title + '</li>');
     });
 }
 
+function Errors (value, isHide) {
+        alert(JSON.stringify(value, null, ' '));
+        if(isHide) {
+            HideLoading();
+        }
+}
+    
 String.prototype.nl2br = function() {
     return this.replace(/\n/g, "<br />");
 }
