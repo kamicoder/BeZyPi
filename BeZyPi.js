@@ -2,11 +2,21 @@
     $("#LoadBetaSerie").click(LoadSeries);
 });
 
-var apiKey = "7fb939f3363b";
-
-var login = "haiecapique";
-var pwd = "d9fb8a057fb2af1c9c9557e49eee7dd4"; //$.md5('monPwd');
 var apiBetaSerie = 'https://api.betaseries.com/';
+
+// Identifiants TKA
+// var apiKey = "7fb939f3363b";
+
+// var login = "haiecapique";
+// var pwd = "d9fb8a057fb2af1c9c9557e49eee7dd4"; //$.md5('monPwd');
+
+
+// Identifiants VBL
+var apiKey = "e8d8e7bc375e";
+
+var login = "Maverickk";
+var pwd = "f15c5072e4704081555ee67c67629f7a"; //$.md5('monPwd');
+
 
 function HeaderApiBetaSerie(token) {
     var header = 'key=' + apiKey + '&v=2.4';
@@ -49,7 +59,7 @@ function InterneLoadSeries(token) {
 function InterneShowSeries(series) {
     $("#Series").empty();
     $.each(series, function(i, item) {
-        $("#Series").append('<li>' + item.title + '</li>');
+        $("#Series").append('<li>' + item.title + '<span class="badge">'+ item.seasons +'</span></li>');
     });
 }
 
