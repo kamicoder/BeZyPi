@@ -41,39 +41,72 @@ function GetAjaxSeriesBetaSeries(requestToken) {
     });
 }
 
+function GetAjaxEpisodeSerieBetaSeries(requestToken, idSerie) {
+    return $.ajax({
+        url : apiBetaSerie + 'shows/episodes?id=' + idSerie + '&' + HeaderApiBetaSerie(requestToken),
+        type : 'GET',
+        dataType : 'json'
+    });
+}
+
 function LoadSeries() {
-    ShowLoading();
-    var requestToken = GetAjaxTokenBetaSeries();
-    requestToken.then(value => InterneLoadSeries(value.token), value => Errors(value, true));
+    ShowLoading();    
+    var request = GetAjaxTokenBetaSeries();
+    request.then(value => InterneLoadSeries(value.token), value => Errors(value, true));
+    //request.always(HideLoading);
 }
 
 function InterneLoadSeries(token) {
-    var requestSeries = GetAjaxSeriesBetaSeries(token);
-    requestSeries.then(value => InterneShowSeries(value.member.shows), value => Errors(value, false));
-    requestSeries.always(HideLoading);
+    var request = GetAjaxSeriesBetaSeries(token);
+    request.then(value => InterneShowSeries(token, value.member.shows), value => Errors(value, true));
 }
 
-function InterneShowSeries(series) {
+function InterneShowSeries(token, series) {
     var tableauSeries = [];
-    
+
+    var listOfPromises = [];
+
     $.each(series, function(i, item) {
-        var serie = {            
+        var serie = {
+            idBetaSerie: item.id,
             text: item.title,
-            selectable: false,
-            nodes: [{
-                text: "Episode <button type='button' class='btn btn-primary downloadEpisode' onclick='DownloadEpisode(\""+ item.id + "\", \"id-episode\")'>Telecharger</button>",
-                selectable: false
-            },
-            {
-                text: "Episode2 <button type='button' class='btn btn-primary downloadEpisode' onclick='DownloadEpisode(\""+ item.id + "\", \"id-episode2\")'>Telecharger</button>",
-                selectable: false
-            }]
+            selectable: false
         };
   
         tableauSeries.push(serie);
+        
+        var promise = GetAjaxEpisodeSerieBetaSeries(token, serie.idBetaSerie);
+        listOfPromises.push(promise);
     });
 
-    CreerTreeView(tableauSeries);
+    $.when.apply($, listOfPromises).then(function() {        
+        for(var i = 0; i < listOfPromises.length; ++i) {
+            var episodes = arguments[i][0];
+            var serie = tableauSeries[i];
+            InterneAddEpisodeSeries(episodes, serie);
+        };
+
+        tableauSeries = tableauSeries.filter(function( serie ) {
+            return serie.nodes.length  !== 0;
+        });
+        
+        CreerTreeView(tableauSeries);
+        HideLoading();
+    });
+}
+
+function InterneAddEpisodeSeries(episodes, serie) {
+    serie.nodes = [];
+
+    $.each(episodes.episodes, function(i, item) {
+        if(!item.user.seen) {
+            var episode = {
+                text: item.code + " (" + item.title + ") <button type='button' class='btn btn-primary downloadEpisode' onclick='DownloadEpisode(\""+ serie.idBetaSerie + "\", \"" + item.id + "\")'>Telecharger</button>",
+                selectable: false
+            }
+            serie.nodes.push(episode);
+        }
+    });
 }
 
 function CreerTreeView(tableauSeries) {
