@@ -5,18 +5,15 @@
 var apiBetaSerie = 'https://api.betaseries.com/';
 
 // Identifiants TKA
-// var apiKey = "7fb939f3363b";
-
-// var login = "haiecapique";
-// var pwd = "d9fb8a057fb2af1c9c9557e49eee7dd4"; //$.md5('monPwd');
+var apiKey = "7fb939f3363b";
+var login = "haiecapique";
+var pwd = "d9fb8a057fb2af1c9c9557e49eee7dd4"; //$.md5('monPwd');
 
 
 // Identifiants VBL
-var apiKey = "e8d8e7bc375e";
-
-var login = "Maverickk";
-var pwd = "f15c5072e4704081555ee67c67629f7a"; //$.md5('monPwd');
-
+//var apiKey = "e8d8e7bc375e";
+//var login = "Maverickk";
+//var pwd = "f15c5072e4704081555ee67c67629f7a"; //$.md5('monPwd');
 
 function HeaderApiBetaSerie(token) {
     var header = 'key=' + apiKey + '&v=2.4';
@@ -57,19 +54,47 @@ function InterneLoadSeries(token) {
 }
 
 function InterneShowSeries(series) {
-    $("#Series").empty();
+    var tableauSeries = [];
+    
     $.each(series, function(i, item) {
-        $("#Series").append('<li><a class="list-group-item">' + item.title + '<span class="badge">'+ item.seasons +'</span></a></li>');
+        var serie = {            
+            text: item.title,
+            selectable: false,
+            nodes: [{
+                text: "Episode <button type='button' class='btn btn-primary downloadEpisode' onclick='DownloadEpisode(\""+ item.id + "\", \"id-episode\")'>Telecharger</button>",
+                selectable: false
+            },
+            {
+                text: "Episode2 <button type='button' class='btn btn-primary downloadEpisode' onclick='DownloadEpisode(\""+ item.id + "\", \"id-episode2\")'>Telecharger</button>",
+                selectable: false
+            }]
+        };
+  
+        tableauSeries.push(serie);
     });
+
+    CreerTreeView(tableauSeries);
 }
 
-function Errors (value, isHide) {
-        alert(JSON.stringify(value, null, ' '));
-        if(isHide) {
-            HideLoading();
-        }
+function CreerTreeView(tableauSeries) {
+    $("#tree").empty();
+
+    $('#tree').treeview({
+        data: tableauSeries,
+        levels: 1
+    });
 }
-    
+function Errors (value, isHide) {
+    alert(JSON.stringify(value, null, ' '));
+    if(isHide) {
+        HideLoading();
+    }
+}
+
+function DownloadEpisode(serie, episode) {
+    alert(serie + "/" + episode);
+}
+
 String.prototype.nl2br = function() {
     return this.replace(/\n/g, "<br />");
 }
